@@ -4,6 +4,17 @@ Midnight Commander uadf
 
 Midnight Commander extfs plugin for handling Amiga adf/dms floppy images.
 
+Description
+-----------
+
+UAdf is an extfs plugin suitable for reading .adf, .adz and .dms Amiga floppy
+disk images. Due to limitations of the
+`unadf <http://freecode.com/projects/unadf>`_, file access inside disk image is
+read only.
+
+In case of corrupted or no-dos images, message will be shown.
+
+
 Requirements
 ------------
 
@@ -73,4 +84,4 @@ This software is licensed under 3-clause BSD license. See LICENSE file for
 details.
 
 
-.. _extfslib: https://github.com/gryf/mc_extfs
+.. _extfslib: https://github.com/gryf/mc_extfslib
