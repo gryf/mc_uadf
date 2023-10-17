@@ -31,13 +31,13 @@ Version: 1.3
 Licence: BSD
 """
 
-import sys
-import re
-import os
 import gzip
-from subprocess import check_output, check_call, CalledProcessError
-from tempfile import mkstemp, mkdtemp
+import os
+import re
 import shutil
+import subprocess
+import sys
+import tempfile
 
 from extfslib import Archive, parse_args
 
@@ -88,7 +88,7 @@ class UAdf(Archive):
     def _ungzip(self):
         """Create temporary file for ungzipped adf file since unadf does not
         accept gzipped content in any way including reading from stdin."""
-        fdesc, tmp_fname = mkstemp(suffix=".adf")
+        fdesc, tmp_fname = tempfile.mkstemp(suffix=".adf")
         os.close(fdesc)
 
         with gzip.open(self._arch) as gobj:
@@ -99,14 +99,15 @@ class UAdf(Archive):
 
     def _undms(self):
         """Create temporary adf file extracted from dms."""
-        fdesc, tmp_fname = mkstemp(suffix=".adf")
+        fdesc, tmp_fname = tempfile.mkstemp(suffix=".adf")
         os.close(fdesc)
 
         try:
-            check_call([self.DMS, b'-q', b'u', self._arch, "+" + tmp_fname])
+            subprocess.check_call([self.DMS, b'-q', b'u', self._arch,
+                                   "+" + tmp_fname])
             self._arch = tmp_fname
             self._clean = False
-        except (CalledProcessError, OSError):
+        except (subprocess.CalledProcessError, OSError):
             pass
 
     def _get_dir(self):
@@ -114,9 +115,10 @@ class UAdf(Archive):
         contents = []
         with open(os.devnull, "w") as fnull:
             try:
-                out = check_output([self.ARCHIVER, self.CMDS['list'],
-                                    self._arch], stderr=fnull)
-            except CalledProcessError:
+                out = subprocess.check_output([self.ARCHIVER, 
+                                               self.CMDS['list'],
+                                               self._arch], stderr=fnull)
+            except subprocess.CalledProcessError:
                 return contents
 
         for line in out.split(b"\n"):
@@ -168,7 +170,7 @@ class UAdf(Archive):
                              " extract desired files.\n")
             return 1
 
-        extract_dir = mkdtemp()
+        extract_dir = tempfile.mkdtemp()
         cmd = [self.ARCHIVER, self._arch, real_src, b"-d", extract_dir]
         if check_call(cmd, stdout=open(os.devnull, 'wb'),
                       stderr=open(os.devnull, 'wb')) != 0:
