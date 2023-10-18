@@ -43,6 +43,10 @@ import tempfile
 import extfslib
 
 
+BANNER_PAT = re.compile(r'unADF v\d.\d : a unzip like for .ADF files, '
+                        r'powered by ADFlib (.*)\n\n')
+
+
 class UAdf(extfslib.Archive):
     """
     Class for interact with c1541 program and MC
@@ -111,6 +115,16 @@ class UAdf(extfslib.Archive):
         except (subprocess.CalledProcessError, OSError):
             pass
 
+    def _parse_banner(self, string):
+        match = BANNER_PAT.match(string)
+        if not match:
+            return
+
+        if match.end() == len(string):
+            return
+
+        return string[match.end():]
+
     def _map_name(self, name):
         if name.startswith(" "):
             new_name = "".join(["~", name[1:]])
@@ -123,8 +137,9 @@ class UAdf(extfslib.Archive):
         out = subprocess.run([self.ARCHIVER, self.CMDS['list'], self._arch],
                              capture_output=True, encoding="latin-1")
 
-        if out.stderr:
-            sys.stderr.write(out.stderr)
+        error_msg = self._parse_banner(out.stderr)
+        if error_msg:
+            sys.stderr.write(error_msg)
 
         for line in out.stdout.split("\n"):
             match = self.LINE_PAT.match(line)
