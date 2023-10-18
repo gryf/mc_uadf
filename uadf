@@ -107,13 +107,11 @@ class UAdf(extfslib.Archive):
         fdesc, tmp_fname = tempfile.mkstemp(suffix=".adf")
         os.close(fdesc)
 
-        try:
-            subprocess.check_call([self.DMS, '-q', 'u', self._arch,
-                                   "+" + tmp_fname])
+        result = subprocess.run([self.DMS, '-q', 'u', self._arch,
+                                 "+" + tmp_fname])
+        if result.returncode == 0:
             self._arch = tmp_fname
             self._clean = False
-        except (subprocess.CalledProcessError, OSError):
-            pass
 
     def _parse_banner(self, string):
         match = BANNER_PAT.match(string)
@@ -196,10 +194,14 @@ class UAdf(extfslib.Archive):
 
         extract_dir = tempfile.mkdtemp()
         cmd = [self.ARCHIVER, "-d", extract_dir, self._arch, real_src]
-        if check_call(cmd, stdout=open(os.devnull, 'wb'),
-                      stderr=open(os.devnull, 'wb')) != 0:
+        result = subprocess.run(cmd, stdout=open(os.devnull, 'wb'),
+                                stderr=open(os.devnull, 'wb'))
+
+        error_msg = self._parse_banner(result.stderr)
+        if error_msg:
+            sys.stderr.write("unadf returned with error:\n")
+            sys.stderr.write(error_msg)
             shutil.rmtree(extract_dir)
-            sys.stderr.write("unadf returned with nonzero exit code\n")
             return 1
 
         # use subprocess, as shutil will crash on binary encoded filenames
