@@ -40,10 +40,10 @@ import subprocess
 import sys
 import tempfile
 
-from extfslib import Archive, parse_args
+import extfslib
 
 
-class UAdf(Archive):
+class UAdf(extfslib.Archive):
     """
     Class for interact with c1541 program and MC
     """
@@ -195,4 +195,4 @@ class UAdf(Archive):
 
 
 if __name__ == "__main__":
-    sys.exit(parse_args(UAdf))
+    sys.exit(extfslib.parse_args(UAdf))
