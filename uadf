@@ -27,7 +27,7 @@ Changelog:
     1.0 Initial release
 
 Author: Roman 'gryf' Dobosz <gryf73@gmail.com>
-Date: 2023-10-16
+Date: 2023-10-19
 Version: 1.4
 Licence: BSD
 """
@@ -49,7 +49,7 @@ BANNER_PAT = re.compile(r'unADF v\d.\d : a unzip like for .ADF files, '
 
 class UAdf(extfslib.Archive):
     """
-    Class for interact with c1541 program and MC
+    Class for interact with ADF/DMS images and MC
     """
     LINE_PAT = re.compile(r'\s*(?P<size>\d+)?'
                           r'\s{2}(?P<date>\d{4}/\d{2}/\d{2})'
@@ -186,7 +186,7 @@ class UAdf(extfslib.Archive):
 
         real_src = real_src[0].encode('latin-1')
 
-        if " " in real_src:
+        if b" " in real_src:
             sys.stderr.write("unadf is unable to operate on filepath with "
                              "space inside.\nUse affs to mount image and than"
                              " extract desired files.\n")
@@ -194,10 +194,9 @@ class UAdf(extfslib.Archive):
 
         extract_dir = tempfile.mkdtemp()
         cmd = [self.ARCHIVER, "-d", extract_dir, self._arch, real_src]
-        result = subprocess.run(cmd, stdout=open(os.devnull, 'wb'),
-                                stderr=open(os.devnull, 'wb'))
+        result = subprocess.run(cmd, capture_output=True)
 
-        error_msg = self._parse_banner(result.stderr)
+        error_msg = self._parse_banner(result.stderr.decode('utf-8'))
         if error_msg:
             sys.stderr.write("unadf returned with error:\n")
             sys.stderr.write(error_msg)
