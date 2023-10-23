@@ -123,12 +123,6 @@ class UAdf(extfslib.Archive):
 
         return string[match.end():]
 
-    def _map_name(self, name):
-        if name.startswith(" "):
-            new_name = "".join(["~", name[1:]])
-            return new_name
-        return name
-
     def _get_dir(self):
         """Retrieve directory"""
         contents = []
